@@ -1,0 +1,269 @@
+<%
+  const _nav = typeof navWorkspaces !== 'undefined' ? navWorkspaces : [];
+  const _hues = [220, 267, 180, 340, 30, 150, 290, 10];
+%>
+
+<% if (user.role === 'admin') { %>
+<!-- ═══════════════════ ADMIN SIDEBAR ═══════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <% if (typeof platform !== 'undefined' && platform && platform.logo_url) { %>
+        <img src="<%= platform.logo_url %>" alt="<%= platform.name %> logo" class="brand-logo-img" />
+      <% } else { %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      <% } %>
+    </div>
+    <span class="brand-name"><%= (typeof platform !== 'undefined' && platform && platform.name) ? platform.name : 'BI Portal' %></span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <span class="nav-label">Main</span>
+
+      <!-- Workspaces mega-menu trigger -->
+      <div class="mega-wrap" id="megaWrap">
+        <a href="/workspaces" class="nav-item <%= currentPage === 'workspaces' ? 'active' : '' %> mega-trigger" id="megaTrigger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span>Workspaces</span>
+          <svg class="nav-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-label">Administration</span>
+      <a href="/admin" class="nav-item <%= currentPage === 'admin' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span>Overview</span>
+      </a>
+      <a href="/admin/users" class="nav-item <%= currentPage === 'users' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>Users</span>
+      </a>
+      <a href="/admin/workspaces" class="nav-item <%= currentPage === 'admin-workspaces' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <span>Workspaces</span>
+      </a>
+      <a href="/admin/dashboards" class="nav-item <%= currentPage === 'admin-dashboards' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span>Dashboards</span>
+      </a>
+      <a href="/admin/platforms" class="nav-item <%= currentPage === 'admin-platforms' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span>Platforms</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar"><%= user.firstName.charAt(0) %><%= user.lastName.charAt(0) %></div>
+      <div class="user-details">
+        <span class="user-name"><%= user.firstName %> <%= user.lastName %></span>
+        <span class="user-role-tag admin-tag">Admin</span>
+      </div>
+    </div>
+    <form action="/auth/logout" method="POST">
+      <button type="submit" class="logout-btn" title="Sign out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+</aside>
+
+<% } else { %>
+<!-- ═══════════════════ BA TOPBAR ═══════════════════ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="brand-icon">
+      <% if (typeof platform !== 'undefined' && platform && platform.logo_url) { %>
+        <img src="<%= platform.logo_url %>" alt="<%= platform.name %> logo" class="brand-logo-img" />
+      <% } else { %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      <% } %>
+    </div>
+    <span class="topbar-brand-name"><%= (typeof platform !== 'undefined' && platform && platform.name) ? platform.name : 'BI Portal' %></span>
+
+    <div class="topbar-sep">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14">
+        <polyline points="9 6 15 12 9 18"/>
+      </svg>
+    </div>
+
+    <!-- Workspaces mega-menu trigger -->
+    <div class="mega-wrap topbar-mega-wrap" id="megaWrap">
+      <button class="topbar-ws-btn mega-trigger" id="megaTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Workspaces
+        <svg class="btn-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+    </div>
+
+    <% if (typeof backUrl !== 'undefined' && backUrl) { %>
+      <div class="topbar-sep">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14">
+          <polyline points="9 6 15 12 9 18"/>
+        </svg>
+      </div>
+      <a href="<%= backUrl %>" class="topbar-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+        <%= typeof backLabel !== 'undefined' ? backLabel : 'Back' %>
+      </a>
+    <% } %>
+
+    <% if (typeof pageTitle !== 'undefined' && pageTitle) { %>
+      <div class="topbar-sep">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14">
+          <polyline points="9 6 15 12 9 18"/>
+        </svg>
+      </div>
+      <span class="topbar-page-title"><%= pageTitle %></span>
+    <% } %>
+  </div>
+
+  <div class="topbar-right">
+    <div class="topbar-user">
+      <div class="user-avatar sm"><%= user.firstName.charAt(0) %><%= user.lastName.charAt(0) %></div>
+      <div class="topbar-user-info">
+        <span class="topbar-user-name"><%= user.firstName %> <%= user.lastName %></span>
+        <span class="user-role-tag ba-tag">Business Analyst</span>
+      </div>
+    </div>
+    <div class="topbar-divider"></div>
+    <form action="/auth/logout" method="POST">
+      <button type="submit" class="topbar-logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Sign out
+      </button>
+    </form>
+  </div>
+</header>
+<% } %>
+
+<!-- ═══════════════════ MEGA MENU PANEL ═══════════════════ -->
+<div class="mega-menu" id="megaMenu" role="navigation" aria-label="Workspaces navigation">
+  <div class="mega-body">
+
+    <!-- Left: workspace list -->
+    <div class="mega-left">
+      <p class="mega-section-label">Workspaces</p>
+      <% if (_nav.length === 0) { %>
+        <div class="mega-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          No workspaces available
+        </div>
+      <% } else { %>
+        <% _nav.forEach((ws, i) => { %>
+          <a href="/workspace/<%= ws.id %>"
+             class="mega-ws-item"
+             data-ws="<%= ws.id %>">
+            <span class="mega-ws-dot" style="background:hsl(<%= _hues[i % _hues.length] %>,60%,52%)"></span>
+            <span class="mega-ws-info">
+              <span class="mega-ws-name"><%= ws.name %></span>
+              <span class="mega-ws-count"><%= ws.dashboards.length %> report<%= ws.dashboards.length !== 1 ? 's' : '' %></span>
+            </span>
+            <svg class="mega-ws-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+              <polyline points="9 6 15 12 9 18"/>
+            </svg>
+          </a>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <!-- Right: dashboard panels (one per workspace) -->
+    <div class="mega-right">
+      <% if (_nav.length === 0) { %>
+        <div class="mega-empty" style="height:100%;align-items:center;justify-content:center">
+          Select a workspace to see its reports.
+        </div>
+      <% } else { %>
+        <% _nav.forEach((ws, i) => { %>
+          <div class="mega-panel" data-ws="<%= ws.id %>">
+            <p class="mega-section-label"><%= ws.name %></p>
+            <% if (ws.dashboards.length === 0) { %>
+              <div class="mega-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+                  <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                No reports in this workspace
+              </div>
+            <% } else { %>
+              <% ws.dashboards.forEach(dash => { %>
+                <a href="/dashboard/<%= dash.id %>" class="mega-dash-item">
+                  <span class="mega-dash-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                      <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                  </span>
+                  <span class="mega-dash-info">
+                    <span class="mega-dash-name"><%= dash.name %></span>
+                    <% if (dash.description) { %>
+                      <span class="mega-dash-desc"><%= dash.description %></span>
+                    <% } %>
+                  </span>
+                  <svg class="mega-dash-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </a>
+              <% }) %>
+            <% } %>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="mega-footer">
+    <a href="/workspaces" class="mega-footer-link">
+      View all workspaces
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </a>
+  </div>
+</div>

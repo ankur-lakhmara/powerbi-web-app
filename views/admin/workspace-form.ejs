@@ -1,0 +1,69 @@
+<%- include('../partials/head', { title: (editWorkspace ? 'Edit Workspace' : 'Add Workspace') + ' — BI Portal' }) %>
+<div class="app-layout">
+  <%- include('../partials/sidebar', { currentPage: 'admin-workspaces' }) %>
+  <main class="main-content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <a href="/admin/workspaces" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Workspaces
+        </a>
+        <h1 class="page-title"><%= editWorkspace ? 'Edit Workspace' : 'Add New Workspace' %></h1>
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <%= error %>
+      </div>
+    <% } %>
+
+    <div class="form-card" style="max-width: 640px">
+      <form action="/admin/workspaces/<%= editWorkspace ? editWorkspace.id + '/edit' : 'new' %>" method="POST">
+        <div class="form-section">
+          <h3 class="form-section-title">Workspace Details</h3>
+          <div class="form-group">
+            <label class="form-label">Workspace Name <span class="required">*</span></label>
+            <input type="text" name="name" class="form-input"
+              value="<%= editWorkspace ? editWorkspace.name : '' %>"
+              placeholder="e.g. Invoicing Analytics" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-input form-textarea" rows="3"
+              placeholder="Brief description of this workspace"><%= editWorkspace ? editWorkspace.description : '' %></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Power BI Configuration</h3>
+          <div class="form-group">
+            <label class="form-label">
+              Power BI Workspace ID (Group ID)
+              <span class="required">*</span>
+            </label>
+            <input type="text" name="pbi_workspace_id" class="form-input font-mono"
+              value="<%= editWorkspace ? editWorkspace.pbi_workspace_id : '' %>"
+              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required />
+            <p class="form-hint">Found in your Power BI workspace URL: app.powerbi.com/groups/<strong>{workspace-id}</strong></p>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="/admin/workspaces" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-primary">
+            <%= editWorkspace ? 'Save Changes' : 'Create Workspace' %>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<%- include('../partials/head', { title: 'Dashboards — BI Portal Admin' }) %>
+<div class="app-layout">
+  <%- include('../partials/sidebar', { currentPage: 'admin-dashboards' }) %>
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Dashboards</h1>
+        <p class="page-subtitle">Manage Power BI report configurations</p>
+      </div>
+      <a href="/admin/dashboards/new" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Dashboard
+      </a>
+    </div>
+
+    <% if (message) { %>
+      <div class="alert alert-success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <%= message %>
+      </div>
+    <% } %>
+
+    <div class="table-card">
+      <% if (dashboards.length === 0) { %>
+        <div class="empty-state-sm">No dashboards configured yet.</div>
+      <% } else { %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Workspace</th>
+              <th>Power BI Report ID</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% dashboards.forEach(d => { %>
+              <tr>
+                <td>
+                  <div class="table-icon-label">
+                    <div class="table-icon table-icon-teal">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="font-medium"><%= d.name %></div>
+                      <% if (d.description) { %>
+                        <div class="text-muted text-sm"><%= d.description %></div>
+                      <% } %>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <a href="/workspace/<%= d.workspace_id %>" class="link-subtle"><%= d.workspace_name %></a>
+                </td>
+                <td><code class="code-pill"><%= d.pbi_report_id %></code></td>
+                <td class="text-muted"><%= new Date(d.created_at).toLocaleDateString() %></td>
+                <td>
+                  <div class="action-buttons">
+                    <a href="/dashboard/<%= d.id %>" class="btn btn-ghost btn-xs">View</a>
+                    <a href="/admin/dashboards/<%= d.id %>/edit" class="btn btn-ghost btn-xs">Edit</a>
+                    <form action="/admin/dashboards/<%= d.id %>/delete" method="POST" style="display:inline"
+                      onsubmit="return confirm('Delete this dashboard?')">
+                      <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

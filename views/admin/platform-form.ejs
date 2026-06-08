@@ -1,0 +1,254 @@
+<%- include('../partials/head', { title: (editPlatform ? 'Edit Platform' : 'Add Platform') + ' — BI Portal' }) %>
+<div class="app-layout">
+  <%- include('../partials/sidebar', { currentPage: 'admin-platforms' }) %>
+  <main class="main-content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <a href="/admin/platforms" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Platforms
+        </a>
+        <h1 class="page-title"><%= editPlatform ? 'Edit Platform' : 'Add New Platform' %></h1>
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <%= error %>
+      </div>
+    <% } %>
+
+    <div class="form-card">
+      <form action="/admin/platforms/<%= editPlatform ? editPlatform.id + '/edit' : 'new' %>" method="POST" enctype="multipart/form-data">
+
+        <div class="form-section">
+          <h3 class="form-section-title">Platform Details</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Domain / Subdomain <span class="required">*</span></label>
+              <input type="text" name="domain" id="domainInput" class="form-input font-mono"
+                value="<%= editPlatform ? editPlatform.domain : '' %>"
+                placeholder="botox.mypharmadash.com" onpaste="setTimeout(cleanDomainInput, 0)" onblur="cleanDomainInput()" required />
+              <p class="form-hint">The hostname used to detect this platform — paste a full URL (e.g. <strong>https://ezchat.mypharmadash.com/</strong>) and it will be reduced to just the domain automatically. For local testing use <strong>localhost</strong> or <strong>127.0.0.1</strong>.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Platform Name <span class="required">*</span></label>
+              <input type="text" name="name" class="form-input"
+                value="<%= editPlatform ? editPlatform.name : '' %>" placeholder="Botox Client Portal" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-input form-textarea" rows="2"
+              placeholder="Notes about this platform/tenant"><%= editPlatform ? editPlatform.description : '' %></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Logo / Brand Image</label>
+            <% if (editPlatform && editPlatform.logo_url) { %>
+              <div class="logo-preview-row">
+                <img src="<%= editPlatform.logo_url %>" alt="<%= editPlatform.name %> logo" class="logo-preview-img" />
+                <label class="checkbox-label">
+                  <input type="checkbox" name="remove_logo" />
+                  Remove current logo
+                </label>
+              </div>
+            <% } %>
+            <input type="file" name="logo" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" class="form-input" />
+            <p class="form-hint">Shown in the sidebar / header for users on this platform's domain. PNG, JPG, SVG, WEBP or GIF — up to 2MB. Leave empty to keep the default branding.</p>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Power BI Credentials (optional)</h3>
+          <p class="form-help-text">Leave blank to use the default credentials configured in the server's environment (.env). Set these only if this platform must authenticate to Power BI with a different master account.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Client ID</label>
+              <input type="text" name="pbi_client_id" class="form-input font-mono"
+                value="<%= editPlatform ? editPlatform.pbi_client_id : '' %>" placeholder="(use .env default)" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Authority URL</label>
+              <input type="text" name="pbi_authority_url" class="form-input font-mono"
+                value="<%= editPlatform ? editPlatform.pbi_authority_url : '' %>" placeholder="https://login.microsoftonline.com/{tenant-id}" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">PBI Username</label>
+              <input type="text" name="pbi_username" class="form-input font-mono"
+                value="<%= editPlatform ? editPlatform.pbi_username : '' %>" placeholder="(use .env default)" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">PBI Password</label>
+              <input type="password" name="pbi_password" class="form-input font-mono"
+                value="<%= editPlatform ? editPlatform.pbi_password : '' %>" placeholder="(use .env default)" autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Scope</label>
+              <input type="text" name="pbi_scope" class="form-input font-mono"
+                value="<%= editPlatform ? editPlatform.pbi_scope : '' %>" placeholder="(use .env default)" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Power BI API URL</label>
+              <input type="text" name="pbi_api_url" class="form-input font-mono"
+                value="<%= editPlatform ? editPlatform.pbi_api_url : '' %>" placeholder="https://api.powerbi.com/" />
+              <p class="form-hint">Base REST API URL — must end with a trailing slash, e.g. <strong>https://api.powerbi.com/</strong>.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Dashboard Curation ────────────────────────────────────── -->
+        <div class="form-section" id="curationSection">
+          <div class="access-section-header">
+            <div>
+              <h3 class="form-section-title">Dashboard Curation</h3>
+              <p class="form-help-text">Pick which reports are exposed on this domain. Workspaces appear automatically once at least one of their reports is selected. By default all reports are selected.</p>
+            </div>
+          </div>
+
+          <% if (workspacesWithDashboards.length === 0) { %>
+            <div class="alert alert-warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              No workspaces available. <a href="/admin/workspaces/new">Create a workspace</a> first.
+            </div>
+          <% } else { %>
+            <div class="access-blocks">
+              <% workspacesWithDashboards.forEach(ws => {
+                   // New platforms default to "everything curated"; edits respect saved selections.
+                   const isChecked = (dash) => editPlatform ? assignedDashboards.includes(dash.id) : true;
+                   const wsHasSelection = ws.dashboards.some(d => isChecked(d));
+              %>
+                <div class="access-block <%= wsHasSelection ? 'ws-active' : '' %>" data-ws-id="<%= ws.id %>">
+                  <div class="access-block-header">
+                    <div class="access-ws-label" style="cursor:default;">
+                      <div class="access-ws-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                      </div>
+                      <div class="access-ws-info">
+                        <span class="access-ws-name"><%= ws.name %></span>
+                        <% if (ws.description) { %>
+                          <span class="access-ws-desc"><%= ws.description %></span>
+                        <% } %>
+                      </div>
+                    </div>
+
+                    <% if (ws.dashboards.length > 0) { %>
+                      <div class="access-ws-controls">
+                        <button type="button" class="btn-access-ctrl" onclick="selectAllReports(<%= ws.id %>, true)">Select all</button>
+                        <button type="button" class="btn-access-ctrl btn-access-ctrl--clear" onclick="selectAllReports(<%= ws.id %>, false)">Clear all</button>
+                      </div>
+                    <% } %>
+                  </div>
+
+                  <div class="access-reports" id="reports-ws-<%= ws.id %>">
+                    <% if (ws.dashboards.length === 0) { %>
+                      <span class="access-reports-empty">No reports in this workspace yet.</span>
+                    <% } else { %>
+                      <% ws.dashboards.forEach(dash => {
+                           const dashChecked = isChecked(dash);
+                      %>
+                        <label class="access-report-chip <%= dashChecked ? 'checked' : '' %>">
+                          <input
+                            type="checkbox"
+                            name="dashboard_ids"
+                            value="<%= dash.id %>"
+                            data-ws-id="<%= ws.id %>"
+                            class="dash-checkbox"
+                            <%= dashChecked ? 'checked' : '' %>
+                            onchange="onDashToggle(this)"
+                          />
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M7 8h10M7 12h10M7 16h5"/>
+                          </svg>
+                          <span><%= dash.name %></span>
+                          <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="10" height="10">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </label>
+                      <% }) %>
+                    <% } %>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+
+        <div class="form-actions">
+          <a href="/admin/platforms" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-primary">
+            <%= editPlatform ? 'Save Changes' : 'Create Platform' %>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Reduce a pasted full URL down to a bare hostname (no protocol/port/path) ──
+// so it matches what Express's req.hostname reports at request time.
+function cleanDomainInput() {
+  var input = document.getElementById('domainInput');
+  var value = input.value.trim();
+  try {
+    // Prepend a scheme if missing so the URL parser can extract the hostname
+    var withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : 'http://' + value;
+    var url = new URL(withScheme);
+    if (url.hostname) input.value = url.hostname.toLowerCase();
+  } catch (e) {
+    // Not a parseable URL — strip a leading scheme/path/port manually as a fallback
+    input.value = value
+      .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')
+      .split('/')[0]
+      .split('?')[0]
+      .split(':')[0]
+      .toLowerCase();
+  }
+}
+
+// ── Toggle a dashboard chip + reflect onto its workspace block state ──
+function onDashToggle(checkbox) {
+  checkbox.closest('label').classList.toggle('checked', checkbox.checked);
+  refreshWsState(checkbox.dataset.wsId);
+}
+
+function refreshWsState(wsId) {
+  var block   = document.querySelector('.access-block[data-ws-id="' + wsId + '"]');
+  var reports = document.getElementById('reports-ws-' + wsId);
+  if (!block || !reports) return;
+  var anyChecked = Array.prototype.some.call(
+    reports.querySelectorAll('.dash-checkbox'), function(d) { return d.checked; }
+  );
+  block.classList.toggle('ws-active', anyChecked);
+}
+
+// ── Select/clear all reports for a workspace ─────────────────────
+function selectAllReports(wsId, select) {
+  var reports = document.getElementById('reports-ws-' + wsId);
+  if (!reports) return;
+  reports.querySelectorAll('.dash-checkbox').forEach(function(d) {
+    d.checked = select;
+    d.closest('label').classList.toggle('checked', select);
+  });
+  refreshWsState(wsId);
+}
+</script>
+</body>
+</html>

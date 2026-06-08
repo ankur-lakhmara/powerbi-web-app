@@ -1,0 +1,86 @@
+<%- include('../partials/head', { title: 'Platforms — BI Portal Admin' }) %>
+<div class="app-layout">
+  <%- include('../partials/sidebar', { currentPage: 'admin-platforms' }) %>
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Platforms</h1>
+        <p class="page-subtitle">Manage domains/subdomains and which dashboards appear on each one</p>
+      </div>
+      <a href="/admin/platforms/new" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Platform
+      </a>
+    </div>
+
+    <% if (message) { %>
+      <div class="alert alert-success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <%= message %>
+      </div>
+    <% } %>
+
+    <div class="table-card">
+      <% if (platforms.length === 0) { %>
+        <div class="empty-state-sm">
+          No platforms configured yet. Add a domain to start curating dashboards per platform.
+        </div>
+      <% } else { %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Domain</th>
+              <th>Curated Reports</th>
+              <th>Users</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% platforms.forEach(p => { %>
+              <tr>
+                <td>
+                  <div class="table-icon-label">
+                    <div class="table-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="font-medium"><%= p.name %></div>
+                      <% if (p.description) { %>
+                        <div class="text-muted text-sm"><%= p.description %></div>
+                      <% } %>
+                    </div>
+                  </div>
+                </td>
+                <td><code class="code-pill"><%= p.domain %></code></td>
+                <td><span class="badge badge-neutral"><%= p.dashboard_count %></span></td>
+                <td><span class="badge badge-neutral"><%= p.user_count %></span></td>
+                <td class="text-muted"><%= new Date(p.created_at).toLocaleDateString() %></td>
+                <td>
+                  <div class="action-buttons">
+                    <a href="/admin/platforms/<%= p.id %>/edit" class="btn btn-ghost btn-xs">Edit</a>
+                    <form action="/admin/platforms/<%= p.id %>/delete" method="POST" style="display:inline"
+                      onsubmit="return confirm('Delete this platform? Its BA accounts will also be removed.')">
+                      <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

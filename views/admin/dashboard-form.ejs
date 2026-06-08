@@ -1,0 +1,111 @@
+<%- include('../partials/head', { title: (editDashboard ? 'Edit Dashboard' : 'Add Dashboard') + ' — BI Portal' }) %>
+<div class="app-layout">
+  <%- include('../partials/sidebar', { currentPage: 'admin-dashboards' }) %>
+  <main class="main-content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <a href="/admin/dashboards" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Dashboards
+        </a>
+        <h1 class="page-title"><%= editDashboard ? 'Edit Dashboard' : 'Add New Dashboard' %></h1>
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <%= error %>
+      </div>
+    <% } %>
+
+    <div class="form-card" style="max-width: 640px">
+      <form action="/admin/dashboards/<%= editDashboard ? editDashboard.id + '/edit' : 'new' %>" method="POST">
+        <div class="form-section">
+          <h3 class="form-section-title">Dashboard Details</h3>
+          <div class="form-group">
+            <label class="form-label">Dashboard Name <span class="required">*</span></label>
+            <input type="text" name="name" class="form-input"
+              value="<%= editDashboard ? editDashboard.name : '' %>"
+              placeholder="e.g. Monthly Sales Overview" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-input form-textarea" rows="3"
+              placeholder="Brief description of this dashboard"><%= editDashboard ? editDashboard.description : '' %></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Workspace <span class="required">*</span></label>
+            <select name="workspace_id" class="form-input form-select" required>
+              <option value="">— Select a workspace —</option>
+              <% workspaces.forEach(ws => { %>
+                <option value="<%= ws.id %>" <%= (editDashboard && editDashboard.workspace_id === ws.id) ? 'selected' : '' %>>
+                  <%= ws.name %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Power BI Configuration</h3>
+          <div class="form-group">
+            <label class="form-label">
+              Power BI Report ID
+              <span class="required">*</span>
+              <span class="pbi-extract-badge" id="extractBadge">Extracted from URL</span>
+            </label>
+            <input type="text" id="reportIdInput" name="pbi_report_id" class="form-input font-mono"
+              value="<%= editDashboard ? editDashboard.pbi_report_id : '' %>"
+              placeholder="Paste report ID or full Power BI URL" required />
+            <p class="form-hint">You can paste the full Power BI URL — the report ID will be extracted automatically.<br>
+              <span class="form-hint-mono">app.powerbi.com/groups/{workspace-id}/reports/<strong>{report-id}</strong></span>
+            </p>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="/admin/dashboards" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-primary">
+            <%= editDashboard ? 'Save Changes' : 'Create Dashboard' %>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  var input = document.getElementById('reportIdInput');
+  var badge = document.getElementById('extractBadge');
+  var badgeTimer;
+
+  // Regex: match /reports/{guid} in a Power BI URL
+  var PBI_URL_RE = /\/reports\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+
+  input.addEventListener('paste', function (e) {
+    var pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
+    var match  = pasted.match(PBI_URL_RE);
+
+    if (match) {
+      e.preventDefault();           // block the raw paste
+      input.value = match[1];       // set only the extracted ID
+
+      // Show feedback badge
+      clearTimeout(badgeTimer);
+      badge.classList.add('visible');
+      badgeTimer = setTimeout(function () {
+        badge.classList.remove('visible');
+      }, 2500);
+    }
+    // If no URL match → fall through, browser pastes as-is
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<%- include('partials/head', { title: code + ' — BI Portal' }) %>
+<% if (user) { %>
+<div class="app-layout">
+  <%- include('partials/sidebar', { currentPage: '' }) %>
+  <main class="main-content">
+<% } %>
+
+<div class="error-page">
+  <div class="error-code"><%= code %></div>
+  <h2 class="error-message"><%= message %></h2>
+  <div class="error-actions">
+    <% if (user) { %>
+      <a href="/workspaces" class="btn btn-primary">Go to Workspaces</a>
+    <% } else { %>
+      <a href="/login" class="btn btn-primary">Sign In</a>
+    <% } %>
+  </div>
+</div>
+
+<% if (user) { %>
+  </main>
+</div>
+<% } %>
+</body>
+</html>

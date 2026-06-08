@@ -1,0 +1,81 @@
+<%- include('../partials/head', { title: 'Workspaces — BI Portal Admin' }) %>
+<div class="app-layout">
+  <%- include('../partials/sidebar', { currentPage: 'admin-workspaces' }) %>
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Workspaces</h1>
+        <p class="page-subtitle">Manage Power BI workspace configurations</p>
+      </div>
+      <a href="/admin/workspaces/new" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Workspace
+      </a>
+    </div>
+
+    <% if (message) { %>
+      <div class="alert alert-success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <%= message %>
+      </div>
+    <% } %>
+
+    <div class="table-card">
+      <% if (workspaces.length === 0) { %>
+        <div class="empty-state-sm">No workspaces configured yet.</div>
+      <% } else { %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Power BI Workspace ID</th>
+              <th>Dashboards</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% workspaces.forEach(ws => { %>
+              <tr>
+                <td>
+                  <div class="table-icon-label">
+                    <div class="table-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="font-medium"><%= ws.name %></div>
+                      <% if (ws.description) { %>
+                        <div class="text-muted text-sm"><%= ws.description %></div>
+                      <% } %>
+                    </div>
+                  </div>
+                </td>
+                <td><code class="code-pill"><%= ws.pbi_workspace_id %></code></td>
+                <td><span class="badge badge-neutral"><%= ws.dashboard_count %></span></td>
+                <td class="text-muted"><%= new Date(ws.created_at).toLocaleDateString() %></td>
+                <td>
+                  <div class="action-buttons">
+                    <a href="/workspace/<%= ws.id %>" class="btn btn-ghost btn-xs">View</a>
+                    <a href="/admin/workspaces/<%= ws.id %>/edit" class="btn btn-ghost btn-xs">Edit</a>
+                    <form action="/admin/workspaces/<%= ws.id %>/delete" method="POST" style="display:inline"
+                      onsubmit="return confirm('Delete this workspace and all its dashboards?')">
+                      <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

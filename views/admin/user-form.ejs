@@ -1,0 +1,285 @@
+<%- include('../partials/head', { title: (editUser ? 'Edit User' : 'Add User') + ' — BI Portal' }) %>
+<div class="app-layout">
+  <%- include('../partials/sidebar', { currentPage: 'users' }) %>
+  <main class="main-content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <a href="/admin/users" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Users
+        </a>
+        <h1 class="page-title"><%= editUser ? 'Edit User' : 'Add New User' %></h1>
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <%= error %>
+      </div>
+    <% } %>
+
+    <div class="form-card">
+      <form action="/admin/users/<%= editUser ? editUser.id + '/edit' : 'new' %>" method="POST">
+
+        <div class="form-section">
+          <h3 class="form-section-title">Personal Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">First Name <span class="required">*</span></label>
+              <input type="text" name="first_name" class="form-input"
+                value="<%= editUser ? editUser.first_name : '' %>" placeholder="Ankur" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name <span class="required">*</span></label>
+              <input type="text" name="last_name" class="form-input"
+                value="<%= editUser ? editUser.last_name : '' %>" placeholder="Verma" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address <span class="required">*</span></label>
+            <input type="email" name="email" class="form-input"
+              value="<%= editUser ? editUser.email : '' %>" placeholder="ankur@psglobalgroup.com" required />
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Account Settings</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Password <span class="required">*</span></label>
+              <div class="input-btn-group">
+                <input type="text" id="passwordInput" name="password" class="form-input font-mono"
+                  value="<%= editUser ? editUser.password : '' %>" placeholder="Enter or generate password" required />
+                <button type="button" class="btn-gen-password" onclick="generatePassword()" title="Generate a random 12-character password">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                  </svg>
+                  Generate
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role <span class="required">*</span></label>
+              <select name="role" class="form-input form-select" id="roleSelect" onchange="handleRoleChange()">
+                <option value="BA" <%= (!editUser || editUser.role === 'BA') ? 'selected' : '' %>>Business Analyst (BA)</option>
+                <option value="admin" <%= (editUser && editUser.role === 'admin') ? 'selected' : '' %>>Administrator</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row" id="platformRow">
+            <div class="form-group">
+              <label class="form-label">Platform <span class="required">*</span></label>
+              <select name="platform_id" class="form-input form-select" id="platformSelect">
+                <option value="">— Select a platform —</option>
+                <% platforms.forEach(p => { %>
+                  <option value="<%= p.id %>" <%= selectedPlatformId === p.id ? 'selected' : '' %>>
+                    <%= p.name %> (<%= p.domain %>)
+                  </option>
+                <% }) %>
+              </select>
+              <p class="form-help-text">Business Analyst accounts belong to exactly one platform/domain. The same email can have a separate account on each platform.</p>
+              <% if (platforms.length === 0) { %>
+                <div class="alert alert-warning" style="margin-top:8px;">
+                  No platforms configured yet. <a href="/admin/platforms/new">Create a platform</a> first.
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Workspace & Report Access ─────────────────────────────── -->
+        <div class="form-section" id="workspaceSection">
+          <div class="access-section-header">
+            <div>
+              <h3 class="form-section-title">Workspace &amp; Report Access</h3>
+              <p class="form-help-text">Select workspaces and which reports within each workspace this user can view.</p>
+            </div>
+          </div>
+
+          <% if (workspacesWithDashboards.length === 0) { %>
+            <div class="alert alert-warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              No workspaces available. <a href="/admin/workspaces/new">Create a workspace</a> first.
+            </div>
+          <% } else { %>
+            <div class="access-blocks">
+              <% workspacesWithDashboards.forEach(ws => {
+                   const wsChecked   = assignedWorkspaces.includes(ws.id);
+              %>
+                <div class="access-block <%= wsChecked ? 'ws-active' : '' %>" data-ws-id="<%= ws.id %>">
+
+                  <!-- Workspace header row -->
+                  <div class="access-block-header">
+                    <label class="access-ws-label">
+                      <input
+                        type="checkbox"
+                        name="workspace_ids"
+                        value="<%= ws.id %>"
+                        class="ws-checkbox"
+                        data-ws-id="<%= ws.id %>"
+                        <%= wsChecked ? 'checked' : '' %>
+                      />
+                      <div class="access-ws-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                      </div>
+                      <div class="access-ws-info">
+                        <span class="access-ws-name"><%= ws.name %></span>
+                        <% if (ws.description) { %>
+                          <span class="access-ws-desc"><%= ws.description %></span>
+                        <% } %>
+                      </div>
+                      <div class="access-ws-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="11" height="11">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </div>
+                    </label>
+
+                    <% if (ws.dashboards.length > 0) { %>
+                      <div class="access-ws-controls">
+                        <button type="button" class="btn-access-ctrl" onclick="selectAllReports(<%= ws.id %>, true)">Select all</button>
+                        <button type="button" class="btn-access-ctrl btn-access-ctrl--clear" onclick="selectAllReports(<%= ws.id %>, false)">Clear all</button>
+                      </div>
+                    <% } %>
+                  </div>
+
+                  <!-- Dashboard chips -->
+                  <div class="access-reports" id="reports-ws-<%= ws.id %>"
+                       style="<%= !wsChecked ? 'display:none' : '' %>">
+                    <% if (ws.dashboards.length === 0) { %>
+                      <span class="access-reports-empty">No reports in this workspace yet.</span>
+                    <% } else { %>
+                      <% ws.dashboards.forEach(dash => {
+                           const dashChecked = assignedDashboards.includes(dash.id);
+                      %>
+                        <label class="access-report-chip <%= dashChecked ? 'checked' : '' %>">
+                          <input
+                            type="checkbox"
+                            name="dashboard_ids"
+                            value="<%= dash.id %>"
+                            data-ws-id="<%= ws.id %>"
+                            class="dash-checkbox"
+                            <%= dashChecked ? 'checked' : '' %>
+                            onchange="this.closest('label').classList.toggle('checked', this.checked)"
+                          />
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M7 8h10M7 12h10M7 16h5"/>
+                          </svg>
+                          <span><%= dash.name %></span>
+                          <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="10" height="10">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </label>
+                      <% }) %>
+                    <% } %>
+                  </div>
+
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+
+        <div class="form-actions">
+          <a href="/admin/users" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-primary">
+            <%= editUser ? 'Save Changes' : 'Create User' %>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Workspace toggle ─────────────────────────────────────────────
+document.querySelectorAll('.ws-checkbox').forEach(function(cb) {
+  cb.addEventListener('change', function() {
+    var wsId      = this.dataset.wsId;
+    var block     = this.closest('.access-block');
+    var reports   = document.getElementById('reports-ws-' + wsId);
+    var isChecked = this.checked;
+
+    block.classList.toggle('ws-active', isChecked);
+    reports.style.display = isChecked ? '' : 'none';
+
+    // Auto-select all reports when workspace is first checked
+    if (isChecked) {
+      reports.querySelectorAll('.dash-checkbox').forEach(function(d) {
+        d.checked = true;
+        d.closest('label').classList.add('checked');
+      });
+    } else {
+      reports.querySelectorAll('.dash-checkbox').forEach(function(d) {
+        d.checked = false;
+        d.closest('label').classList.remove('checked');
+      });
+    }
+  });
+});
+
+// ── Select/clear all reports for a workspace ─────────────────────
+function selectAllReports(wsId, select) {
+  var reports = document.getElementById('reports-ws-' + wsId);
+  if (!reports) return;
+  reports.querySelectorAll('.dash-checkbox').forEach(function(d) {
+    d.checked = select;
+    d.closest('label').classList.toggle('checked', select);
+  });
+}
+
+// ── Role change hides/shows access section + platform selector ───
+function handleRoleChange() {
+  var role        = document.getElementById('roleSelect').value;
+  var section     = document.getElementById('workspaceSection');
+  var platformRow = document.getElementById('platformRow');
+  var platformSel = document.getElementById('platformSelect');
+  var isBA        = role === 'BA';
+
+  section.style.display     = isBA ? 'block' : 'none';
+  platformRow.style.display = isBA ? '' : 'none';
+  platformSel.required      = isBA;
+  if (!isBA) platformSel.value = '';
+}
+handleRoleChange();
+
+// ── Password generator ───────────────────────────────────────────
+function generatePassword() {
+  var upper  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var lower  = 'abcdefghijklmnopqrstuvwxyz';
+  var digits = '0123456789';
+  var all    = upper + lower + digits;
+  var pwd    = [];
+
+  // Guarantee at least 2 uppercase + 2 digits
+  for (var i = 0; i < 2; i++) pwd.push(upper[Math.floor(Math.random() * upper.length)]);
+  for (var i = 0; i < 2; i++) pwd.push(digits[Math.floor(Math.random() * digits.length)]);
+  while (pwd.length < 12)     pwd.push(all[Math.floor(Math.random() * all.length)]);
+
+  // Fisher-Yates shuffle
+  for (var i = pwd.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = pwd[i]; pwd[i] = pwd[j]; pwd[j] = t;
+  }
+
+  var input = document.getElementById('passwordInput');
+  input.value = pwd.join('');
+  input.focus();
+  input.select();
+}
+</script>
+</body>
+</html>

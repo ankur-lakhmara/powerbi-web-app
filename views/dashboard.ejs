@@ -1,0 +1,113 @@
+<%- include('partials/head', { title: dashboard.name + ' — BI Portal' }) %>
+<script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.23.1/dist/powerbi.min.js"></script>
+
+<div class="app-layout">
+  <%- include('partials/sidebar', { currentPage: '', pageTitle: dashboard.name, backUrl: '/workspace/' + dashboard.workspace_id, backLabel: dashboard.workspace_name }) %>
+  <main class="main-content dashboard-main">
+    <div class="dashboard-toolbar">
+      <div class="dashboard-toolbar-left">
+        <a href="/workspace/<%= dashboard.workspace_id %>" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          <%= dashboard.workspace_name %>
+        </a>
+        <div class="toolbar-divider"></div>
+        <h1 class="toolbar-title"><%= dashboard.name %></h1>
+      </div>
+      <div class="dashboard-toolbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="toggleFullscreen()" title="Fullscreen">
+          <svg id="fsIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+          Fullscreen
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="refreshReport()" title="Refresh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 .49-3.75"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <div class="report-wrapper" id="reportWrapper">
+      <% if (typeof pbiError !== 'undefined' && pbiError) { %>
+        <div class="report-error">
+          <div class="report-error-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <h3>Unable to load report</h3>
+          <p><%= pbiError %></p>
+          <% if (user.role === 'admin') { %>
+            <a href="/admin/dashboards/<%= dashboard.id %>/edit" class="btn btn-primary">Edit Dashboard Config</a>
+          <% } %>
+        </div>
+      <% } else { %>
+        <div id="reportContainer" class="report-container">
+          <div class="report-loading">
+            <div class="loading-spinner"></div>
+            <span>Loading report...</span>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+
+<% if (embedConfig) { %>
+<script>
+  const embedConfig = {
+    type: 'report',
+    id: '<%- embedConfig.reportId %>',
+    embedUrl: '<%- embedConfig.embedUrl %>',
+    accessToken: '<%- embedConfig.embedToken %>',
+    tokenType: window['powerbi-client'].models.TokenType.Embed,
+    settings: {
+      panes: {
+        filters: { expanded: false, visible: true },
+        pageNavigation: { visible: true, position: window['powerbi-client'].models.PageNavigationPosition.Bottom }
+      },
+      background: window['powerbi-client'].models.BackgroundType.Transparent
+    }
+  };
+
+  const container = document.getElementById('reportContainer');
+  const report = window.powerbi.embed(container, embedConfig);
+  let embeddedReport = report;
+
+  report.on('loaded', () => {
+    container.querySelector('.report-loading')?.remove();
+  });
+
+  report.on('error', (event) => {
+    console.error('Power BI error:', event.detail);
+  });
+
+  function refreshReport() {
+    embeddedReport?.refresh();
+  }
+
+  function toggleFullscreen() {
+    const wrapper = document.getElementById('reportWrapper');
+    if (!document.fullscreenElement) {
+      wrapper.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  }
+</script>
+<% } else { %>
+<script>
+  function refreshReport() {}
+  function toggleFullscreen() {}
+</script>
+<% } %>
+</body>
+</html>
