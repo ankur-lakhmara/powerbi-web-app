@@ -107,6 +107,58 @@
           </div>
         </div>
 
+        <!-- ── Microsoft SSO ─────────────────────────────────────────── -->
+        <div class="form-section">
+          <h3 class="form-section-title">Microsoft SSO (Entra ID)</h3>
+          <p class="form-help-text">Enable "Sign in with Microsoft" for BA users on this platform's domain. Requires an App Registration in your Azure / Entra ID tenant. Users who sign in via SSO are auto-provisioned as BA accounts if they don't exist yet.</p>
+
+          <div class="form-group">
+            <label class="checkbox-label" style="font-size:0.9rem;font-weight:600;gap:10px;">
+              <input type="checkbox" name="ms_sso_enabled" id="msSsoEnabled"
+                <%= (editPlatform && editPlatform.ms_sso_enabled) ? 'checked' : '' %>
+                onchange="document.getElementById('msSsoFields').style.display = this.checked ? '' : 'none'" />
+              Enable Microsoft SSO for this platform
+            </label>
+          </div>
+
+          <div id="msSsoFields" style="display:<%= (editPlatform && editPlatform.ms_sso_enabled) ? '' : 'none' %>">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Tenant ID <span class="required">*</span></label>
+                <input type="text" name="ms_tenant_id" class="form-input font-mono"
+                  value="<%= editPlatform ? editPlatform.ms_tenant_id : '' %>"
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx  or  organizations" />
+                <p class="form-hint">The Directory (tenant) ID from your App Registration overview. Use <strong>organizations</strong> for any work/school account, or paste your specific tenant GUID to lock it to one org.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Client ID (Application ID) <span class="required">*</span></label>
+                <input type="text" name="ms_client_id" class="form-input font-mono"
+                  value="<%= editPlatform ? editPlatform.ms_client_id : '' %>"
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+                <p class="form-hint">The Application (client) ID from the App Registration overview page.</p>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Client Secret <span class="required">*</span></label>
+                <input type="password" name="ms_client_secret" class="form-input font-mono"
+                  value="<%= editPlatform ? editPlatform.ms_client_secret : '' %>"
+                  placeholder="<%= editPlatform && editPlatform.ms_client_secret ? '(saved — paste to change)' : 'Paste secret value here' %>"
+                  autocomplete="new-password" />
+                <p class="form-hint">The secret <em>Value</em> (not the ID) from Certificates &amp; secrets in your App Registration.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Redirect URI (register this in Azure)</label>
+                <% const callbackBase = editPlatform ? ('https://' + editPlatform.domain) : 'https://yourdomain.com'; %>
+                <input type="text" class="form-input font-mono" readonly
+                  value="<%= callbackBase %>/auth/microsoft/callback"
+                  onclick="this.select()" style="cursor:pointer;background:var(--bg-2,#f9fafb);color:var(--text-3);" />
+                <p class="form-hint">Copy this URL and add it as a <strong>Web</strong> redirect URI under Authentication in your App Registration. Must match exactly.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- ── Dashboard Curation ────────────────────────────────────── -->
         <div class="form-section" id="curationSection">
           <div class="access-section-header">

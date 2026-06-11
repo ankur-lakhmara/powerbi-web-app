@@ -519,8 +519,10 @@ router.get('/platforms/new', async (req, res) => {
 router.post('/platforms/new', uploadPlatformLogo, async (req, res) => {
   const {
     domain, name, description,
-    pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url
+    pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url,
+    ms_tenant_id, ms_client_id, ms_client_secret
   } = req.body;
+  const ms_sso_enabled = req.body.ms_sso_enabled === 'on';
   let dashboard_ids = req.body.dashboard_ids || [];
   if (!Array.isArray(dashboard_ids)) dashboard_ids = [dashboard_ids];
 
@@ -549,13 +551,15 @@ router.post('/platforms/new', uploadPlatformLogo, async (req, res) => {
     await client.query('BEGIN');
     const { rows: inserted } = await client.query(`
       INSERT INTO platforms
-        (domain, name, description, pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url, logo_url)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+        (domain, name, description, pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url, logo_url,
+         ms_sso_enabled, ms_tenant_id, ms_client_id, ms_client_secret)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
       RETURNING id
     `, [
       normalizedDomain, name, description || '',
       pbi_client_id || '', pbi_username || '', pbi_password || '',
-      pbi_authority_url || '', pbi_scope || '', pbi_api_url || '', logoUrl
+      pbi_authority_url || '', pbi_scope || '', pbi_api_url || '', logoUrl,
+      ms_sso_enabled, ms_tenant_id || '', ms_client_id || '', ms_client_secret || ''
     ]);
     const newId = inserted[0].id;
 
@@ -604,9 +608,11 @@ router.post('/platforms/:id/edit', uploadPlatformLogo, async (req, res) => {
   const platformId = parseInt(req.params.id);
   const {
     domain, name, description,
-    pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url
+    pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url,
+    ms_tenant_id, ms_client_id, ms_client_secret
   } = req.body;
-  const removeLogo = req.body.remove_logo === 'on';
+  const removeLogo    = req.body.remove_logo    === 'on';
+  const ms_sso_enabled = req.body.ms_sso_enabled === 'on';
   let dashboard_ids = req.body.dashboard_ids || [];
   if (!Array.isArray(dashboard_ids)) dashboard_ids = [dashboard_ids];
 
@@ -648,12 +654,15 @@ router.post('/platforms/:id/edit', uploadPlatformLogo, async (req, res) => {
       UPDATE platforms SET
         domain=$1, name=$2, description=$3,
         pbi_client_id=$4, pbi_username=$5, pbi_password=$6,
-        pbi_authority_url=$7, pbi_scope=$8, pbi_api_url=$9, logo_url=$10
-      WHERE id=$11
+        pbi_authority_url=$7, pbi_scope=$8, pbi_api_url=$9, logo_url=$10,
+        ms_sso_enabled=$11, ms_tenant_id=$12, ms_client_id=$13, ms_client_secret=$14
+      WHERE id=$15
     `, [
       normalizedDomain, name, description || '',
       pbi_client_id || '', pbi_username || '', pbi_password || '',
-      pbi_authority_url || '', pbi_scope || '', pbi_api_url || '', logoUrl, platformId
+      pbi_authority_url || '', pbi_scope || '', pbi_api_url || '', logoUrl,
+      ms_sso_enabled, ms_tenant_id || '', ms_client_id || '', ms_client_secret || '',
+      platformId
     ]);
 
     await client.query('DELETE FROM platform_dashboard_access WHERE platform_id = $1', [platformId]);

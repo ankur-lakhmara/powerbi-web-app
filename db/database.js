@@ -55,6 +55,10 @@ async function initializeDatabase() {
     `);
     await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS pbi_api_url TEXT NOT NULL DEFAULT ''`);
     await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS logo_url TEXT NOT NULL DEFAULT ''`);
+    await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS ms_sso_enabled BOOLEAN NOT NULL DEFAULT false`);
+    await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS ms_tenant_id TEXT NOT NULL DEFAULT ''`);
+    await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS ms_client_id TEXT NOT NULL DEFAULT ''`);
+    await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS ms_client_secret TEXT NOT NULL DEFAULT ''`);
 
     // ── PBI Users (prefixed to avoid collision with other app's users table) ──
     // platform_id is NULL for global admins; required (enforced in app layer) for BA users.
