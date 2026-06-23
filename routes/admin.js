@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/database');
 const { requireAdmin } = require('../middleware/auth');
-const { uploadPlatformLogo, logoUrlFor } = require('../middleware/upload');
+const { uploadPlatformAssets, logoUrlFor, backgroundUrlFor } = require('../middleware/upload');
 
 router.use(requireAdmin);
 
@@ -516,7 +516,7 @@ router.get('/platforms/new', async (req, res) => {
   }
 });
 
-router.post('/platforms/new', uploadPlatformLogo, async (req, res) => {
+router.post('/platforms/new', uploadPlatformAssets, async (req, res) => {
   const {
     domain, name, description,
     pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url,
@@ -542,7 +542,8 @@ router.post('/platforms/new', uploadPlatformLogo, async (req, res) => {
   }
 
   const normalizedDomain = normalizeDomain(domain);
-  const logoUrl = logoUrlFor(req.file) || '';
+  const logoUrl       = logoUrlFor(req.files) || '';
+  const backgroundUrl = backgroundUrlFor(req.files) || '';
   const client = await pool.connect();
   try {
     const { rows: existing } = await client.query('SELECT id FROM platforms WHERE domain = $1', [normalizedDomain]);
@@ -552,15 +553,15 @@ router.post('/platforms/new', uploadPlatformLogo, async (req, res) => {
     const { rows: inserted } = await client.query(`
       INSERT INTO platforms
         (domain, name, description, pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url, logo_url,
-         ms_sso_enabled, ms_tenant_id, ms_client_id, ms_client_secret, sso_email_domain)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+         ms_sso_enabled, ms_tenant_id, ms_client_id, ms_client_secret, sso_email_domain, login_background_url)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
       RETURNING id
     `, [
       normalizedDomain, name, description || '',
       pbi_client_id || '', pbi_username || '', pbi_password || '',
       pbi_authority_url || '', pbi_scope || '', pbi_api_url || '', logoUrl,
       ms_sso_enabled, ms_tenant_id || '', ms_client_id || '', ms_client_secret || '',
-      (sso_email_domain || '').toLowerCase().trim()
+      (sso_email_domain || '').toLowerCase().trim(), backgroundUrl
     ]);
     const newId = inserted[0].id;
 
@@ -605,14 +606,15 @@ router.get('/platforms/:id/edit', async (req, res) => {
   }
 });
 
-router.post('/platforms/:id/edit', uploadPlatformLogo, async (req, res) => {
+router.post('/platforms/:id/edit', uploadPlatformAssets, async (req, res) => {
   const platformId = parseInt(req.params.id);
   const {
     domain, name, description,
     pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url,
     ms_tenant_id, ms_client_id, ms_client_secret, sso_email_domain
   } = req.body;
-  const removeLogo    = req.body.remove_logo    === 'on';
+  const removeLogo       = req.body.remove_logo       === 'on';
+  const removeBackground = req.body.remove_background === 'on';
   const ms_sso_enabled = req.body.ms_sso_enabled === 'on';
   let dashboard_ids = req.body.dashboard_ids || [];
   if (!Array.isArray(dashboard_ids)) dashboard_ids = [dashboard_ids];
@@ -644,11 +646,15 @@ router.post('/platforms/:id/edit', uploadPlatformLogo, async (req, res) => {
     );
     if (existing.length) return renderForm('A platform with this domain already exists.');
 
-    // Logo precedence: a freshly uploaded file replaces it, the "remove" checkbox
-    // clears it, otherwise the existing logo is kept untouched.
-    const { rows: currentRows } = await client.query('SELECT logo_url FROM platforms WHERE id = $1', [platformId]);
-    const uploadedLogoUrl = logoUrlFor(req.file);
+    // Logo/background precedence: a freshly uploaded file replaces it, the
+    // "remove" checkbox clears it, otherwise the existing value is kept.
+    const { rows: currentRows } = await client.query(
+      'SELECT logo_url, login_background_url FROM platforms WHERE id = $1', [platformId]
+    );
+    const uploadedLogoUrl = logoUrlFor(req.files);
     const logoUrl = uploadedLogoUrl || (removeLogo ? '' : (currentRows[0]?.logo_url || ''));
+    const uploadedBackgroundUrl = backgroundUrlFor(req.files);
+    const backgroundUrl = uploadedBackgroundUrl || (removeBackground ? '' : (currentRows[0]?.login_background_url || ''));
 
     await client.query('BEGIN');
     await client.query(`
@@ -656,15 +662,16 @@ router.post('/platforms/:id/edit', uploadPlatformLogo, async (req, res) => {
         domain=$1, name=$2, description=$3,
         pbi_client_id=$4, pbi_username=$5, pbi_password=$6,
         pbi_authority_url=$7, pbi_scope=$8, pbi_api_url=$9, logo_url=$10,
-        ms_sso_enabled=$11, ms_tenant_id=$12, ms_client_id=$13, ms_client_secret=$14, sso_email_domain=$15
-      WHERE id=$16
+        ms_sso_enabled=$11, ms_tenant_id=$12, ms_client_id=$13, ms_client_secret=$14, sso_email_domain=$15,
+        login_background_url=$16
+      WHERE id=$17
     `, [
       normalizedDomain, name, description || '',
       pbi_client_id || '', pbi_username || '', pbi_password || '',
       pbi_authority_url || '', pbi_scope || '', pbi_api_url || '', logoUrl,
       ms_sso_enabled, ms_tenant_id || '', ms_client_id || '', ms_client_secret || '',
       (sso_email_domain || '').toLowerCase().trim(),
-      platformId
+      backgroundUrl, platformId
     ]);
 
     await client.query('DELETE FROM platform_dashboard_access WHERE platform_id = $1', [platformId]);

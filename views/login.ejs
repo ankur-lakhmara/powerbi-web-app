@@ -1,6 +1,9 @@
 <%- include('partials/head', { title: 'Sign In — BI Portal' }) %>
+<%
+  const _bgUrl = (typeof platform !== 'undefined' && platform && platform.login_background_url) ? platform.login_background_url : '';
+%>
 <div class="auth-page">
-  <div class="auth-left">
+  <div class="auth-left <%= _bgUrl ? 'has-bg-image' : '' %>" <% if (_bgUrl) { %>style="background-image:url('<%= _bgUrl %>')"<% } %>>
     <div class="auth-brand">
       <div class="brand-icon large">
         <% if (typeof platform !== 'undefined' && platform && platform.logo_url) { %>
