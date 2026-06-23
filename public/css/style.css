@@ -1238,8 +1238,8 @@ input, select, textarea { font-family: inherit; }
   display: none;
 }
 
-.auth-brand { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
-.auth-brand .brand-icon { width: 48px; height: 48px; background: rgba(255, 255, 255, 0.968); backdrop-filter: blur(4px); }
+.auth-brand { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1;justify-content: center; }
+.auth-brand .brand-icon { width: 250px; height: auto; background: none; backdrop-filter: blur(4px); }
 .auth-brand .brand-icon svg { width: 22px; height: 22px; }
 .auth-brand-name { font-size: 1.7rem; font-weight: 800; color: #fff; letter-spacing: -0.04em; }
 .auth-tagline {
