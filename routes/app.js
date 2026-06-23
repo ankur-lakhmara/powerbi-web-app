@@ -41,6 +41,11 @@ router.get('/workspaces', requireAuth, async (req, res) => {
         ORDER BY w.created_at DESC
       `, [user.id, user.platformId]);
     }
+    // Skip the workspace picker entirely when there's only one to choose from.
+    if (result.rows.length === 1) {
+      return res.redirect(`/workspace/${result.rows[0].id}`);
+    }
+
     res.render('workspaces', { user, workspaces: result.rows });
   } catch (err) {
     console.error('Workspaces error:', err.message);

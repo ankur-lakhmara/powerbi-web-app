@@ -14,7 +14,7 @@
     // ── Positioning ──────────────────────────────────────
     function positionMenu() {
       const tr = trigger.getBoundingClientRect();
-      const menuW = 580;
+      const menuW = menu.classList.contains('is-single') ? 320 : 580;
       const menuH = Math.min(460, window.innerHeight - 80);
 
       if (isTopbar) {

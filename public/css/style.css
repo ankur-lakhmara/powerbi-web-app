@@ -1344,6 +1344,7 @@ input, select, textarea { font-family: inherit; }
   animation: megaIn 0.14s ease both;
 }
 .mega-menu.is-open { display: flex; }
+.mega-menu.is-single { width: 320px; }
 
 @keyframes megaIn {
   from { opacity: 0; transform: translateY(-6px) scale(0.99); }
