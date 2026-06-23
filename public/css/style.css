@@ -1274,6 +1274,13 @@ input, select, textarea { font-family: inherit; }
 }
 .btn-ms-sso:hover { background: #f3f4f6; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
 
+.auth-back-link {
+  display: block; text-align: center;
+  margin-top: 16px; font-size: 0.8rem;
+  color: var(--text-3); text-decoration: none;
+}
+.auth-back-link:hover { color: var(--text); text-decoration: underline; }
+
 .input-password-wrap { position: relative; }
 .input-password-wrap .form-input { padding-right: 42px; }
 .password-toggle {

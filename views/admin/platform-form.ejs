@@ -124,6 +124,15 @@
           <div id="msSsoFields" style="display:<%= (editPlatform && editPlatform.ms_sso_enabled) ? '' : 'none' %>">
             <div class="form-row">
               <div class="form-group">
+                <label class="form-label">Auto-SSO Email Domain</label>
+                <input type="text" name="sso_email_domain" class="form-input font-mono"
+                  value="<%= editPlatform ? editPlatform.sso_email_domain : '' %>"
+                  placeholder="arcutis.com" />
+                <p class="form-hint">When someone types an email ending in <strong>@<em>this domain</em></strong> on the login page, they're sent straight to Microsoft sign-in (no password form) if they already have an account here — otherwise they're told to contact an administrator. Leave blank to keep this platform on password-only login.</p>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
                 <label class="form-label">Tenant ID <span class="required">*</span></label>
                 <input type="text" name="ms_tenant_id" class="form-input font-mono"
                   value="<%= editPlatform ? editPlatform.ms_tenant_id : '' %>"

@@ -37,7 +37,7 @@
     <div class="auth-card">
       <div class="auth-card-header">
         <h2>Welcome back</h2>
-        <p>Sign in to access your dashboards</p>
+        <p><%= step === 'password' ? 'Enter your password to continue' : 'Sign in to access your dashboards' %></p>
       </div>
 
       <% if (error) { %>
@@ -50,61 +50,87 @@
         </div>
       <% } %>
 
-      <form action="/auth/login" method="POST" class="auth-form">
-        <div class="form-group">
-          <label class="form-label">Email address</label>
-          <input
-            type="email"
-            name="email"
-            class="form-input"
-            placeholder="you@company.com"
-            required
-            autocomplete="email"
-          />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <div class="input-password-wrap">
+      <% if (step === 'password') { %>
+        <form action="/auth/login" method="POST" class="auth-form">
+          <div class="form-group">
+            <label class="form-label">Email address</label>
             <input
-              type="password"
-              name="password"
-              id="passwordInput"
+              type="email"
+              name="email"
               class="form-input"
-              placeholder="Enter your password"
-              required
-              autocomplete="current-password"
+              value="<%= prefillEmail %>"
+              readonly
             />
-            <button type="button" class="password-toggle" onclick="togglePassword()">
-              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-            </button>
           </div>
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">
-          Sign in
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
-          </svg>
-        </button>
-      </form>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-password-wrap">
+              <input
+                type="password"
+                name="password"
+                id="passwordInput"
+                class="form-input"
+                placeholder="Enter your password"
+                required
+                autocomplete="current-password"
+                autofocus
+              />
+              <button type="button" class="password-toggle" onclick="togglePassword()">
+                <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">
+            Sign in
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </form>
+        <a href="/auth/login" class="auth-back-link">&larr; Use a different email</a>
+      <% } else { %>
+        <form action="/auth/login/continue" method="POST" class="auth-form">
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input
+              type="email"
+              name="email"
+              class="form-input"
+              placeholder="you@company.com"
+              value="<%= prefillEmail %>"
+              required
+              autocomplete="email"
+              autofocus
+            />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">
+            Continue
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </form>
 
-      <% if (typeof platform !== 'undefined' && platform && platform.ms_sso_enabled) { %>
-        <div class="sso-divider">
-          <span>or</span>
-        </div>
-        <a href="/auth/microsoft" class="btn-ms-sso">
-          <!-- Microsoft logo -->
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21" width="20" height="20">
-            <rect x="1" y="1"  width="9" height="9" fill="#f25022"/>
-            <rect x="11" y="1"  width="9" height="9" fill="#7fba00"/>
-            <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-            <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-          </svg>
-          Sign in with Microsoft
-        </a>
+        <% if (typeof platform !== 'undefined' && platform && platform.ms_sso_enabled) { %>
+          <div class="sso-divider">
+            <span>or</span>
+          </div>
+          <a href="/auth/microsoft" class="btn-ms-sso">
+            <!-- Microsoft logo -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21" width="20" height="20">
+              <rect x="1" y="1"  width="9" height="9" fill="#f25022"/>
+              <rect x="11" y="1"  width="9" height="9" fill="#7fba00"/>
+              <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+              <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+            </svg>
+            Sign in with Microsoft
+          </a>
+        <% } %>
       <% } %>
     </div>
   </div>

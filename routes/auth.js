@@ -15,29 +15,58 @@ function callbackUri(req) {
   return `${req.protocol}://${req.get('host')}/auth/microsoft/callback`;
 }
 
-// Temporary debug endpoint — remove after confirming SSO wiring
-router.get('/platform-debug', (req, res) => {
-  res.json({
-    hostname:       req.hostname,
-    platform:       req.platform ? {
-      id:              req.platform.id,
-      domain:          req.platform.domain,
-      name:            req.platform.name,
-      ms_sso_enabled:  req.platform.ms_sso_enabled,
-    } : null
-  });
-});
-
 router.get('/login', (req, res) => {
   if (req.session?.user) return res.redirect('/workspaces');
-  res.render('login', { error: null });
+  res.render('login', { error: null, step: 'email', prefillEmail: '' });
 });
 
+// ── Step 1: user submits only their email. If it belongs to this platform's
+// configured SSO email domain, skip the password form entirely — either
+// send them straight to Microsoft, or tell them to contact an admin.
+router.post('/login/continue', async (req, res) => {
+  const email = (req.body.email || '').trim().toLowerCase();
+
+  if (!email) {
+    return res.render('login', { error: 'Please enter your email address.', step: 'email', prefillEmail: '' });
+  }
+
+  const platform    = req.platform;
+  const emailDomain = email.split('@')[1] || '';
+  const ssoDomain    = (platform?.sso_email_domain || '').toLowerCase();
+  const ssoMatches   = Boolean(platform?.ms_sso_enabled && ssoDomain && emailDomain === ssoDomain);
+
+  if (!ssoMatches) {
+    return res.render('login', { error: null, step: 'password', prefillEmail: email });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id FROM pbi_users WHERE LOWER(email) = $1 AND (role = 'admin' OR platform_id = $2)`,
+      [email, platform.id]
+    );
+
+    if (!rows.length) {
+      return res.render('login', {
+        error: `No account found for ${email}. Please contact your administrator for access.`,
+        step: 'email',
+        prefillEmail: email
+      });
+    }
+
+    res.redirect('/auth/microsoft');
+  } catch (err) {
+    console.error('Login continue error:', err.message);
+    res.render('login', { error: 'A server error occurred. Please try again.', step: 'email', prefillEmail: email });
+  }
+});
+
+// ── Step 2: normal password login (used only when the email's domain isn't
+// mapped to SSO for this platform).
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.render('login', { error: 'Email and password are required.' });
+    return res.render('login', { error: 'Email and password are required.', step: 'password', prefillEmail: email || '' });
   }
 
   try {
@@ -54,7 +83,7 @@ router.post('/login', async (req, res) => {
     const user = rows[0];
 
     if (!user) {
-      return res.render('login', { error: 'Invalid email or password.' });
+      return res.render('login', { error: 'Invalid email or password.', step: 'password', prefillEmail: email });
     }
 
     req.session.user = {
@@ -69,7 +98,7 @@ router.post('/login', async (req, res) => {
     res.redirect('/workspaces');
   } catch (err) {
     console.error('Login error:', err.message);
-    res.render('login', { error: 'A server error occurred. Please try again.' });
+    res.render('login', { error: 'A server error occurred. Please try again.', step: 'password', prefillEmail: email || '' });
   }
 });
 
@@ -111,12 +140,13 @@ router.get('/microsoft/callback', async (req, res) => {
 
   if (error) {
     return res.render('login', {
-      error: `Microsoft sign-in failed: ${error_description || error}`
+      error: `Microsoft sign-in failed: ${error_description || error}`,
+      step: 'email', prefillEmail: ''
     });
   }
 
   if (!state || state !== req.session.mssoState) {
-    return res.render('login', { error: 'Invalid state parameter. Please try again.' });
+    return res.render('login', { error: 'Invalid state parameter. Please try again.', step: 'email', prefillEmail: '' });
   }
 
   const verifier = req.session.mssoPkce;
@@ -124,7 +154,7 @@ router.get('/microsoft/callback', async (req, res) => {
   delete req.session.mssoPkce;
 
   if (!platform?.ms_sso_enabled) {
-    return res.render('login', { error: 'SSO is not enabled for this platform.' });
+    return res.render('login', { error: 'SSO is not enabled for this platform.', step: 'email', prefillEmail: '' });
   }
 
   try {
@@ -154,7 +184,8 @@ router.get('/microsoft/callback', async (req, res) => {
 
     if (!email) {
       return res.render('login', {
-        error: 'Could not retrieve email from Microsoft. Make sure your account has an email address.'
+        error: 'Could not retrieve email from Microsoft. Make sure your account has an email address.',
+        step: 'email', prefillEmail: ''
       });
     }
 
@@ -189,7 +220,8 @@ router.get('/microsoft/callback', async (req, res) => {
   } catch (err) {
     console.error('SSO callback error:', err.response?.data || err.message);
     res.render('login', {
-      error: 'Microsoft sign-in failed. Please try again or use email/password login.'
+      error: 'Microsoft sign-in failed. Please try again or use email/password login.',
+      step: 'email', prefillEmail: ''
     });
   }
 });
