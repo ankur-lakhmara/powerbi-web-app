@@ -61,6 +61,8 @@ async function initializeDatabase() {
     await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS ms_client_secret TEXT NOT NULL DEFAULT ''`);
     await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS sso_email_domain TEXT NOT NULL DEFAULT ''`);
     await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS login_background_url TEXT NOT NULL DEFAULT ''`);
+    await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS theme_primary_color TEXT NOT NULL DEFAULT '#7c3aed'`);
+    await client.query(`ALTER TABLE platforms ADD COLUMN IF NOT EXISTS theme_secondary_color TEXT NOT NULL DEFAULT '#2563eb'`);
 
     // ── PBI Users (prefixed to avoid collision with other app's users table) ──
     // platform_id is NULL for global admins; required (enforced in app layer) for BA users.

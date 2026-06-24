@@ -8,6 +8,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css" />
+  <% if (typeof theme !== 'undefined' && theme) { %>
+    <style>
+      :root {
+        --accent: <%= theme.primary %>;
+        --accent-hover: <%= theme.accentHover %>;
+        --accent-bg: <%= theme.accentBg %>;
+        --accent-border: <%= theme.accentBorder %>;
+        --accent-text: <%= theme.accentText %>;
+        --gradient: <%= theme.gradient %>;
+        --shadow-accent: <%= theme.shadowAccent %>;
+      }
+    </style>
+  <% } %>
 </head>
 <body>
 <script src="/js/megamenu.js" defer></script>

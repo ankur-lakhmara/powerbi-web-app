@@ -78,6 +78,33 @@
             <input type="file" name="login_background" accept="image/png,image/jpeg,image/webp,image/gif" class="form-input" />
             <p class="form-hint">Fills the left panel of the login page for users on this platform's domain. PNG, JPG, WEBP or GIF — up to 5MB. Leave empty to keep the default blue gradient.</p>
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Primary Color</label>
+              <div class="color-input-row">
+                <input type="color" name="theme_primary_color" id="themePrimaryPicker" class="color-swatch-input"
+                  value="<%= editPlatform && editPlatform.theme_primary_color ? editPlatform.theme_primary_color : '#7c3aed' %>"
+                  oninput="document.getElementById('themePrimaryText').value = this.value" />
+                <input type="text" id="themePrimaryText" class="form-input font-mono" maxlength="7"
+                  value="<%= editPlatform && editPlatform.theme_primary_color ? editPlatform.theme_primary_color : '#7c3aed' %>"
+                  oninput="document.getElementById('themePrimaryPicker').value = this.value" />
+              </div>
+              <p class="form-hint">Used for buttons, links, active nav items and icons across the app.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Secondary Color</label>
+              <div class="color-input-row">
+                <input type="color" name="theme_secondary_color" id="themeSecondaryPicker" class="color-swatch-input"
+                  value="<%= editPlatform && editPlatform.theme_secondary_color ? editPlatform.theme_secondary_color : '#2563eb' %>"
+                  oninput="document.getElementById('themeSecondaryText').value = this.value" />
+                <input type="text" id="themeSecondaryText" class="form-input font-mono" maxlength="7"
+                  value="<%= editPlatform && editPlatform.theme_secondary_color ? editPlatform.theme_secondary_color : '#2563eb' %>"
+                  oninput="document.getElementById('themeSecondaryPicker').value = this.value" />
+              </div>
+              <p class="form-hint">Paired with the primary color for gradients (buttons, icons, login background).</p>
+            </div>
+          </div>
         </div>
 
         <div class="form-section">

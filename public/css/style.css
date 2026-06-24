@@ -961,6 +961,18 @@ input, select, textarea { font-family: inherit; }
   border: 1px solid var(--border, #e5e7eb);
   border-radius: var(--r-sm);
 }
+
+.color-input-row { display: flex; align-items: center; gap: 8px; }
+.color-swatch-input {
+  width: 40px; height: 38px;
+  padding: 2px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+  background: none;
+}
+.color-input-row .form-input { flex: 1; }
 .checkbox-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-3); cursor: pointer; }
 .checkbox-label input[type="checkbox"] { width: auto; margin: 0; }
 

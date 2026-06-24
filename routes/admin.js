@@ -3,6 +3,7 @@ const router = express.Router();
 const { pool } = require('../db/database');
 const { requireAdmin } = require('../middleware/auth');
 const { uploadPlatformAssets, logoUrlFor, backgroundUrlFor } = require('../middleware/upload');
+const { normalizeHex } = require('../utils/color');
 
 router.use(requireAdmin);
 
@@ -520,7 +521,8 @@ router.post('/platforms/new', uploadPlatformAssets, async (req, res) => {
   const {
     domain, name, description,
     pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url,
-    ms_tenant_id, ms_client_id, ms_client_secret, sso_email_domain
+    ms_tenant_id, ms_client_id, ms_client_secret, sso_email_domain,
+    theme_primary_color, theme_secondary_color
   } = req.body;
   const ms_sso_enabled = req.body.ms_sso_enabled === 'on';
   let dashboard_ids = req.body.dashboard_ids || [];
@@ -544,6 +546,8 @@ router.post('/platforms/new', uploadPlatformAssets, async (req, res) => {
   const normalizedDomain = normalizeDomain(domain);
   const logoUrl       = logoUrlFor(req.files) || '';
   const backgroundUrl = backgroundUrlFor(req.files) || '';
+  const primaryColor   = normalizeHex(theme_primary_color,   '#7c3aed');
+  const secondaryColor = normalizeHex(theme_secondary_color, '#2563eb');
   const client = await pool.connect();
   try {
     const { rows: existing } = await client.query('SELECT id FROM platforms WHERE domain = $1', [normalizedDomain]);
@@ -553,15 +557,17 @@ router.post('/platforms/new', uploadPlatformAssets, async (req, res) => {
     const { rows: inserted } = await client.query(`
       INSERT INTO platforms
         (domain, name, description, pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url, logo_url,
-         ms_sso_enabled, ms_tenant_id, ms_client_id, ms_client_secret, sso_email_domain, login_background_url)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+         ms_sso_enabled, ms_tenant_id, ms_client_id, ms_client_secret, sso_email_domain, login_background_url,
+         theme_primary_color, theme_secondary_color)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
       RETURNING id
     `, [
       normalizedDomain, name, description || '',
       pbi_client_id || '', pbi_username || '', pbi_password || '',
       pbi_authority_url || '', pbi_scope || '', pbi_api_url || '', logoUrl,
       ms_sso_enabled, ms_tenant_id || '', ms_client_id || '', ms_client_secret || '',
-      (sso_email_domain || '').toLowerCase().trim(), backgroundUrl
+      (sso_email_domain || '').toLowerCase().trim(), backgroundUrl,
+      primaryColor, secondaryColor
     ]);
     const newId = inserted[0].id;
 
@@ -611,7 +617,8 @@ router.post('/platforms/:id/edit', uploadPlatformAssets, async (req, res) => {
   const {
     domain, name, description,
     pbi_client_id, pbi_username, pbi_password, pbi_authority_url, pbi_scope, pbi_api_url,
-    ms_tenant_id, ms_client_id, ms_client_secret, sso_email_domain
+    ms_tenant_id, ms_client_id, ms_client_secret, sso_email_domain,
+    theme_primary_color, theme_secondary_color
   } = req.body;
   const removeLogo       = req.body.remove_logo       === 'on';
   const removeBackground = req.body.remove_background === 'on';
@@ -655,6 +662,8 @@ router.post('/platforms/:id/edit', uploadPlatformAssets, async (req, res) => {
     const logoUrl = uploadedLogoUrl || (removeLogo ? '' : (currentRows[0]?.logo_url || ''));
     const uploadedBackgroundUrl = backgroundUrlFor(req.files);
     const backgroundUrl = uploadedBackgroundUrl || (removeBackground ? '' : (currentRows[0]?.login_background_url || ''));
+    const primaryColor   = normalizeHex(theme_primary_color,   '#7c3aed');
+    const secondaryColor = normalizeHex(theme_secondary_color, '#2563eb');
 
     await client.query('BEGIN');
     await client.query(`
@@ -663,15 +672,15 @@ router.post('/platforms/:id/edit', uploadPlatformAssets, async (req, res) => {
         pbi_client_id=$4, pbi_username=$5, pbi_password=$6,
         pbi_authority_url=$7, pbi_scope=$8, pbi_api_url=$9, logo_url=$10,
         ms_sso_enabled=$11, ms_tenant_id=$12, ms_client_id=$13, ms_client_secret=$14, sso_email_domain=$15,
-        login_background_url=$16
-      WHERE id=$17
+        login_background_url=$16, theme_primary_color=$17, theme_secondary_color=$18
+      WHERE id=$19
     `, [
       normalizedDomain, name, description || '',
       pbi_client_id || '', pbi_username || '', pbi_password || '',
       pbi_authority_url || '', pbi_scope || '', pbi_api_url || '', logoUrl,
       ms_sso_enabled, ms_tenant_id || '', ms_client_id || '', ms_client_secret || '',
       (sso_email_domain || '').toLowerCase().trim(),
-      backgroundUrl, platformId
+      backgroundUrl, primaryColor, secondaryColor, platformId
     ]);
 
     await client.query('DELETE FROM platform_dashboard_access WHERE platform_id = $1', [platformId]);
